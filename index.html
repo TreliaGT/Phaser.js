@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
+</head>
+<body>
+<script>
+var platforms;
+var config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 400,
+	  physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 300 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+var player;
+var platforms;
+var score = 10;
+var scoreText;
+var endgame = false;
+var game = new Phaser.Game(config);
+
+function preload ()
+{
+	this.load.image('ground', '/assets/ground.png');
+	this.load.image('sky', '/assets/bg.png');
+	this.load.spritesheet('dude', '/assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+	this.load.image('fuel', '/assets/fuel.png');
+	 
+}
+
+function create ()
+{
+	this.physics.world.bounds.width = 5000;
+	this.physics.world.bounds.height = 800;
+	this.add.image(0, 0, 'sky').setOrigin(0, 0).setScale(8);
+	platforms = this.physics.add.staticGroup();
+    platforms.create(0, 790, 'ground').refreshBody();
+	
+	scoreText = this.add.text(16, 16, 'Magic: 10', { fontSize: '32px', fill: '#fff', });
+	scoreText.setScrollFactor(0);
+    platforms.create(600, 790, 'ground');
+    platforms.create(1200, 790 , 'ground');
+	platforms.create(1800, 790 , 'ground');
+	platforms.create(2400, 790 , 'ground');
+	platforms.create(3000, 790 , 'ground');
+	platforms.create(3600, 790 , 'ground');
+	platforms.create(4200, 790 , 'ground');
+	platforms.create(4800, 790 , 'ground');
+	
+    platforms.create(690, 670, 'ground');
+    platforms.create(1290, 680 , 'ground');
+	platforms.create(1890, 700 , 'ground');
+	platforms.create(2490, 680 , 'ground');
+	platforms.create(3090, 600 , 'ground');
+	platforms.create(3690, 700 , 'ground');
+	platforms.create(4290, 680 , 'ground');
+	
+	platforms.create(780, 550, 'ground');
+    platforms.create(1380, 550 , 'ground');
+	platforms.create(1980, 550 , 'ground');
+	platforms.create(2580, 550 , 'ground');
+	//platforms.create(3180, 550 , 'ground');
+	platforms.create(3780, 550 , 'ground');
+
+	
+	player = this.physics.add.sprite(100, 450, 'dude');
+	player.setBounce(0.3);
+	player.setCollideWorldBounds(true);
+
+	this.anims.create({
+		key: 'left',
+		frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+		frameRate: 10,
+		repeat: -1
+	});
+
+	this.anims.create({
+		key: 'turn',
+		frames: [ { key: 'dude', frame: 4 } ],
+		frameRate: 20
+	});
+
+	this.anims.create({
+		key: 'right',
+		frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+		frameRate: 10,
+		repeat: -1
+	});
+	
+	    fuel = this.physics.add.group({
+            key: 'fuel',
+            repeat: 12,
+			setXY: { x: 12, y: 0, stepX: 300 }
+        });
+
+        fuel.children.iterate(function (child) {
+
+            child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.6));
+
+        });
+		this.physics.add.collider(player, platforms);
+	   this.physics.add.collider(fuel, platforms);
+
+        this.physics.add.overlap(player, fuel, collectFuel, null, this);
+		this.cameras.main.setBounds(0, 5, 5000, 800);
+	
+	 this.cameras.main.startFollow(player, false, 1, 1);
+	setTimeout(removeFuel, 5000);
+}
+
+function update (){
+cursors = this.input.keyboard.createCursorKeys();
+	if(!endgame){
+		if (cursors.left.isDown)
+		{
+			player.setVelocityX(-160);
+
+			player.anims.play('left', true);
+		}
+		else if (cursors.right.isDown)
+		{
+			player.setVelocityX(160);
+
+			player.anims.play('right', true);
+		}
+		else
+		{
+			player.setVelocityX(0);
+
+			player.anims.play('turn');
+		}
+
+		if (cursors.up.isDown && player.body.touching.down)
+		{
+			player.setVelocityY(-330);
+		}
+		
+	}
+		if(player.y == 776){
+			scoreText.setText('Webby Fell');
+			endgame = true;
+		}
+}
+
+function collectFuel (player, fuel)
+{
+	if(score <= 90){
+		fuel.disableBody(true, true);
+		score += 10;
+		scoreText.setText('Magic: ' + score);
+	}
+	
+}
+
+function removeFuel(){
+	if(score != 0){
+		score -= 1;
+		scoreText.setText('Magic: ' + score);
+		setTimeout(removeFuel, 1000);
+	}else{
+		scoreText.setText('Webby Went to Sleep');
+		endgame = true;
+	}
+}
+	
+</script>
+</body>
+</html>
